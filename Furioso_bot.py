@@ -1,6 +1,6 @@
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-
+import requests
 from dotenv import load_dotenv
 import os
 from datetime import datetime
@@ -17,10 +17,34 @@ def ESPORTS_KEY():
     load_dotenv()
     return os.getenv("ESPORTS_API_KEY")
 
-proximos_jogos = [
-    {"data": "2025-04-25", "hora": "18:00", "adversario": "NAVI", "campeonato": "ESL Pro League"},
-    {"data": "2025-04-27", "hora": "16:00", "adversario": "Vitality", "campeonato": "Blast Premier"},
-]
+def buscar_proximos_jogos_do_time(nome_time="pain"):
+    url = "https://api.pandascore.co/lol/matches/upcoming"
+    headers = {"Authorization": f"Bearer {ESPORTS_KEY()}"}
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code != 200:
+        print("Erro ao acessar API:", response.status_code)
+        return None
+
+    partidas = response.json()
+
+    for partida in partidas:
+        equipes = [team["opponent"]["name"].lower() for team in partida["opponents"] if team.get("opponent")]
+        if nome_time.lower() in " ".join(equipes):
+            adversario = [
+                team["opponent"]["name"] 
+                for team in partida["opponents"] 
+                if nome_time.lower() not in team["opponent"]["name"].lower()
+            ]
+            return {
+                "adversario": adversario[0] if adversario else "a definir",
+                "data": partida["begin_at"][:10],
+                "hora": partida["begin_at"][11:16],
+                "campeonato": partida["league"]["name"]
+            }
+
+    return None
+
 
 
 
@@ -39,27 +63,49 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode="Markdown")
     
 async def proximo_jogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    hoje = datetime.now().date()
+    jogo = buscar_proximos_jogos_do_time()
+    if jogo:
+        msg = (
+            f"🎮 *Próximo jogo da FURIA!*\n\n"
+            f"🗓️ Data: *{jogo['data']}*\n"
+            f"⏰ Horário: *{jogo['hora']}*\n"
+            f"🆚 Adversário: *{jogo['adversario']}*\n"
+            f"🏆 Campeonato: *{jogo['campeonato']}*\n\n"
+            f"🐆 Vamos pra cima, FURIOSO!"
+        )
+    else:
+        msg = "😕 Não encontrei partidas futuras da FURIA no momento."
 
-    for jogo in proximos_jogos:
-        data_jogo = datetime.strptime(jogo["data"], "%Y-%m-%d").date()
-        if data_jogo >= hoje:
-            resposta = (
-                f"🎮 *Próximo jogo da FURIA!*\n\n"
-                f"🗓️ Data: *{jogo['data']}*\n"
-                f"⏰ Horário: *{jogo['hora']}*\n"
-                f"🆚 Adversário: *{jogo['adversario']}*\n"
-                f"🏆 Campeonato: *{jogo['campeonato']}*\n\n"
-                f"🐆 Vamos pra cima, FURIOSO!"
-            )
-            await update.message.reply_text(resposta, parse_mode="Markdown")
-            return
-
-    await update.message.reply_text("🐆 Não há jogos programados para os próximos dias. Fique ligado!")
+    await update.message.reply_text(msg, parse_mode="Markdown")
     
 
 app = ApplicationBuilder().token(TELEGRAM_KEY()).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("proximojogo", proximo_jogo))
 
+
+'''def listar_times_futuros():
+    url = "https://api.pandascore.co/csgo/matches/upcoming?page=1&per_page=100"
+    headers = {"Authorization": f"Bearer {ESPORTS_KEY()}"}
+    response = requests.get(url, headers=headers)
+
+    if response.status_code != 200:
+        print("Erro ao acessar a API:", response.status_code)
+        return
+
+    partidas = response.json()
+    times = set()
+
+    for partida in partidas:
+        for opponent in partida.get("opponents", []):
+            team = opponent.get("opponent", {})
+            nome = team.get("name")
+            if nome:
+                times.add(nome)
+
+    print("✅ Times encontrados nos próximos jogos:")
+    for nome in sorted(times):
+        print("-", nome)
+
+listar_times_futuros()'''
 app.run_polling()

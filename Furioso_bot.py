@@ -9,10 +9,13 @@ from datetime import datetime
 
 
 
-def API_KEY():
+def TELEGRAM_KEY():
     load_dotenv()
-    api_key = os.getenv("API_KEY")
-    return api_key
+    return os.getenv("TELEGRAM_API_KEY")
+
+def ESPORTS_KEY():
+    load_dotenv()
+    return os.getenv("ESPORTS_API_KEY")
 
 proximos_jogos = [
     {"data": "2025-04-25", "hora": "18:00", "adversario": "NAVI", "campeonato": "ESL Pro League"},
@@ -55,7 +58,7 @@ async def proximo_jogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("🐆 Não há jogos programados para os próximos dias. Fique ligado!")
     
 
-app = ApplicationBuilder().token(API_KEY()).build()
+app = ApplicationBuilder().token(TELEGRAM_KEY()).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("proximojogo", proximo_jogo))
 

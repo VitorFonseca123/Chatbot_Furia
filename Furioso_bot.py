@@ -18,7 +18,7 @@ def ESPORTS_KEY():
     return os.getenv("ESPORTS_API_KEY")
 
 def buscar_proximos_jogos_do_time(nome_time="pain"):
-    url = "https://api.pandascore.co/lol/matches/upcoming"
+    url = "https://api.pandascore.co/csgo/matches/upcoming"
     headers = {"Authorization": f"Bearer {ESPORTS_KEY()}"}
     response = requests.get(url, headers=headers)
     

@@ -27,6 +27,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Aqui é onde a selva se conecta! 🧠💥\n"
         "Fique por dentro das *novidades do time de CS*, receba *notificações de partidas*, participe de *enquetes*, curiosidades, e muito mais!\n\n"
         "Use os comandos abaixo para começar:\n"
+        "/proximojogo – Ver próximo jogo\n"
         "/jogos – Ver próximos jogos\n"
         "/rank – Ranking e estatísticas\n"
         "/curiosidades – Fatos interessantes da FURIA\n"

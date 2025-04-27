@@ -30,17 +30,16 @@ def pandascore_request(endpoint, params=None):
     return response.json()
 
 def buscar_info_time(nome_time):
-    dados = pandascore_request("teams", {"search[name]": nome_time})
-    
+    dados = pandascore_request("teams", {"search[name]": nome_time, "per_page": 50})
+
     if not dados:
         return None
 
-   
-    for time in dados:
-        if time.get("current_videogame", {}).get("slug") == "cs-go":
-            return time
+    
+    times_csgo = [time for time in dados if time.get("current_videogame", {}).get("slug") == "cs-go"]
 
-    return None  
+    return times_csgo  
+
 
 
 def buscar_proximos_jogos_do_time(nome_time="furia"):
@@ -100,25 +99,35 @@ async def proximo_jogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(msg, parse_mode="Markdown")
 
 async def lineup(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    time = buscar_info_time("furia")
+    times = buscar_info_time("furia")
     
-    if not time:
-        await update.message.reply_text("❌ Não consegui encontrar o time de csgo da FURIA.")
+    if not times:
+        await update.message.reply_text("❌ Não consegui encontrar times da FURIA de CS:GO.")
         return
 
-    jogadores = time.get("players", [])
+    texto = "🎯 *Line-up da FURIA:*\n\n"
 
-    if not jogadores:
-        await update.message.reply_text("🕵️‍♂️ A line-up atual da FURIA não está disponível na API.")
-        return
+    for time in times:
+        nome_time = time.get("name", "Nome desconhecido")
+        jogadores = time.get("players", [])
 
-    texto = "🎯 *Line-up atual da FURIA:*\n\n"
-    for jogador in jogadores:
-        nome = jogador.get("name", "Nome desconhecido")
-        nick = jogador.get("slug", "")
-        texto += f"• `{nick}` – {nome}\n"
+        texto += f"*{nome_time}:*\n"
+        if jogadores:
+            for jogador in jogadores:
+                nome = jogador.get("name", "Nome desconhecido")
+                slug = jogador.get("slug", "")
+
+                if slug and len(slug) < 20:  # Se slug for normal (não for UUID enorme)
+                    texto += f"• `{slug}` – {nome}\n"
+                else:
+                    texto += f"• {nome}\n"
+
+        else:
+            texto += "🕵️‍♂️ Line-up não disponível.\n"
+        texto += "\n"
 
     await update.message.reply_text(texto, parse_mode="Markdown")
+
 
 app = ApplicationBuilder().token(TELEGRAM_KEY()).build()
 app.add_handler(CommandHandler("start", start))

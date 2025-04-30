@@ -116,7 +116,7 @@ async def lineup(update: Update, context: ContextTypes.DEFAULT_TYPE):
             for jogador in jogadores:
                 nome = jogador.get("name", "Nome desconhecido")
                 slug = jogador.get("slug", "")
-                texto += f"• {nome}\n"
+                texto += f"• /{nome}\n"
 
         else:
             texto += "🕵️‍♂️ Line-up não disponível.\n"

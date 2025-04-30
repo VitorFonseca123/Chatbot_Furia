@@ -116,11 +116,7 @@ async def lineup(update: Update, context: ContextTypes.DEFAULT_TYPE):
             for jogador in jogadores:
                 nome = jogador.get("name", "Nome desconhecido")
                 slug = jogador.get("slug", "")
-
-                if slug and len(slug) < 20:  # Se slug for normal (não for UUID enorme)
-                    texto += f"• `{slug}` – {nome}\n"
-                else:
-                    texto += f"• {nome}\n"
+                texto += f"• {nome}\n"
 
         else:
             texto += "🕵️‍♂️ Line-up não disponível.\n"

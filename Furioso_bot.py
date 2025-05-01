@@ -9,6 +9,7 @@ from datetime import datetime
 
 
 
+
 def TELEGRAM_KEY():
     load_dotenv()
     return os.getenv("TELEGRAM_API_KEY")
@@ -98,6 +99,47 @@ async def proximo_jogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(msg, parse_mode="Markdown")
 
+def buscar_stats_jogador(slug):
+    dados = pandascore_request("csgo/players", {"search[slug]": slug})
+    
+    if not dados or len(dados) == 0:
+        return None
+
+    return dados[0]  
+async def jogador_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    jogador_slug = update.message.text.lstrip("/").lower()  
+    stats = buscar_stats_jogador(jogador_slug)
+
+    if not stats:
+        await update.message.reply_text(
+            f"❌ Não encontrei estatísticas para o jogador *{jogador_slug}*.",
+            parse_mode="Markdown"
+        )
+        return
+
+    
+    nome = stats.get("name", "Desconhecido")
+    first_name = stats.get("first_name", "")
+    last_name = stats.get("last_name", "")
+    nationality = stats.get("nationality", "N/A")
+    
+    player_image = stats.get("image_url", None)
+
+    
+    texto = (
+        f"📋 *Informações de {nome}*\n\n"
+        f"*Nome completo:* {first_name} {last_name}\n"
+        f"*Nacionalidade:* {nationality}\n"
+        
+    )
+
+    
+    if player_image:
+        texto += f"🖼️ [Foto do jogador]({player_image})\n"
+    
+
+    await update.message.reply_text(texto, parse_mode="Markdown")
+
 async def lineup(update: Update, context: ContextTypes.DEFAULT_TYPE):
     times = buscar_info_time("furia")
     
@@ -115,8 +157,11 @@ async def lineup(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if jogadores:
             for jogador in jogadores:
                 nome = jogador.get("name", "Nome desconhecido")
-                slug = jogador.get("slug", "")
-                texto += f"• /{nome}\n"
+                comando = nome.replace(" ", "_").lower()  # Formata o comando
+                texto += f"• /{comando}\n"
+
+                # Adiciona dinamicamente o comando para o jogador
+                app.add_handler(CommandHandler(comando, jogador_info))
 
         else:
             texto += "🕵️‍♂️ Line-up não disponível.\n"

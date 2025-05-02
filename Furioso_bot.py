@@ -78,8 +78,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Use os comandos abaixo para começar:\n"
         "/proximojogo – Ver próximo jogo\n"
         "/lineup – Ver line-up atual\n"
-        "/rank – Ranking e estatísticas\n"
-        "/notificacoes – Ativar/desativar alertas de partidas\n\n"
         "_Vamos juntos rugir mais alto. FURIA acima de tudo!_ 🖤🤍",
         parse_mode="Markdown")
     

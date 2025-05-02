@@ -8,4 +8,5 @@
 
 # Rodar
 - python Furioso_bot.py
-- abrir telegram  
+- abrir chat do telegram com o bot
+- digite /start  
